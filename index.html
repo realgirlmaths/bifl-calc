@@ -1,0 +1,190 @@
+<style>
+  :root {
+    --color-background: #0f1117;
+    --color-background-secondary: #1a1d27;
+    --color-background-success: #0d2b1a;
+    --color-background-danger: #2b0d0d;
+    --color-text-primary: #e8eaf0;
+    --color-text-secondary: #9094a8;
+    --color-text-tertiary: #5c6070;
+    --color-text-success: #4caf7d;
+    --color-text-danger: #e05c5c;
+    --color-border-success: #1e5c38;
+    --color-border-danger: #5c1e1e;
+    --color-border-tertiary: #2a2d3a;
+    --border-radius-md: 8px;
+    --border-radius-lg: 12px;
+  }
+  body, html { background: var(--color-background); color: var(--color-text-primary); margin: 0; padding: 0; }
+  input[type=range] { accent-color: #378ADD; }
+  .ctrl-group { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 130px; }
+  .ctrl-group label { font-size: 12px; color: var(--color-text-secondary); }
+  .ctrl-group .val { font-size: 14px; font-weight: 500; color: var(--color-text-primary); }
+  .metric { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 0.75rem 1rem; }
+  .mlabel { font-size: 11px; color: var(--color-text-secondary); margin-bottom: 2px; }
+  .mvalue { font-size: 20px; font-weight: 500; }
+  .msub { font-size: 11px; color: var(--color-text-tertiary); margin-top: 2px; }
+  .verdict { border-radius: var(--border-radius-md); padding: 0.75rem 1rem; font-size: 13px; line-height: 1.6; margin-bottom: 1.5rem; border: 0.5px solid; }
+  .verdict-good { background: var(--color-background-success); color: var(--color-text-success); border-color: var(--color-border-success); }
+  .verdict-bad { background: var(--color-background-danger); color: var(--color-text-danger); border-color: var(--color-border-danger); }
+  .verdict-neutral { background: var(--color-background-secondary); color: var(--color-text-secondary); border-color: var(--color-border-tertiary); }
+</style>
+
+<h2 class="sr-only">Interactive calculator showing the maximum price you should pay for a long-lasting quality item versus buying cheaper replacements annually, given investment returns and inflation</h2>
+
+<div style="display:flex; flex-wrap:wrap; gap:16px; margin:1rem 0 1.5rem; padding:1rem; background:var(--color-background-secondary); border-radius:var(--border-radius-lg);">
+  <div class="ctrl-group">
+    <label>Annual cost of cheap item (today's £)</label>
+    <input type="range" min="10" max="2000" step="10" value="200" id="cheap">
+    <span class="val" id="cheap-out">$200 / yr</span>
+  </div>
+  <div class="ctrl-group">
+    <label>Expected lifespan of quality item (years)</label>
+    <input type="range" min="2" max="40" step="1" value="15" id="life">
+    <span class="val" id="life-out">15 yrs</span>
+  </div>
+  <div class="ctrl-group">
+    <label>Actual price of quality item</label>
+    <input type="range" min="50" max="50000" step="50" value="12000" id="actual">
+    <span class="val" id="actual-out">$12,000</span>
+  </div>
+  <div class="ctrl-group">
+    <label>Return rate (% p.a.)</label>
+    <input type="range" min="3" max="12" step="0.5" value="7" id="rate">
+    <span class="val" id="rate-out">7.0%</span>
+  </div>
+  <div class="ctrl-group">
+    <label>Inflation rate (% p.a.)</label>
+    <input type="range" min="0" max="10" step="0.5" value="2.5" id="infl">
+    <span class="val" id="infl-out">2.5%</span>
+  </div>
+</div>
+
+<div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(0,1fr)); gap:10px; margin-bottom:1.25rem;">
+  <div class="metric">
+    <div class="mlabel">Breakeven max price</div>
+    <div class="mvalue" id="m-breakeven" style="color:#378ADD;">—</div>
+    <div class="msub">quality item must cost less than this</div>
+  </div>
+  <div class="metric">
+    <div class="mlabel">Actual price</div>
+    <div class="mvalue" id="m-actual">—</div>
+    <div class="msub">what you'd pay</div>
+  </div>
+  <div class="metric">
+    <div class="mlabel">Overpay / underpay</div>
+    <div class="mvalue" id="m-delta">—</div>
+    <div class="msub">vs breakeven</div>
+  </div>
+  <div class="metric">
+    <div class="mlabel">Implied max multiple</div>
+    <div class="mvalue" id="m-multiple">—</div>
+    <div class="msub">quality / annual cheap cost</div>
+  </div>
+</div>
+
+<div class="verdict" id="verdict">—</div>
+
+<div style="display:flex; flex-wrap:wrap; gap:14px; margin-bottom:8px; font-size:12px; color:var(--color-text-secondary);">
+  <span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:2px;background:#378ADD;display:inline-block;"></span>Cumulative cheap cost (nominal)</span>
+  <span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:2px;background:#639922;display:inline-block;"></span>Breakeven price</span>
+  <span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:2px;background:#D4537E;display:inline-block;"></span>Actual quality price</span>
+</div>
+
+<div style="position:relative; width:100%; height:300px;">
+  <canvas id="chart" role="img" aria-label="Line chart comparing cumulative cost of cheap replacements versus the breakeven and actual price of the quality item over the item's lifespan">Loading chart.</canvas>
+</div>
+
+<div style="margin-top:1rem; padding:0.75rem 1rem; background:var(--color-background-secondary); border-radius:var(--border-radius-md); font-size:13px; color:var(--color-text-secondary); line-height:1.6;">
+  <strong style="color:var(--color-text-primary);">How this works:</strong> The breakeven price is the present value of all future cheap purchases, where each year's cost grows with inflation and is discounted at your return rate (growing annuity PV). This is the most you could rationally pay for the quality item. The cumulative cheap cost line shows actual nominal spend including inflation each year.
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const fmt = v => '$' + Math.round(v).toLocaleString();
+
+// Growing annuity PV: payments grow at rate g, discounted at rate r, for n periods
+function growingAnnuityPV(pmt, r, g, n) {
+  if (Math.abs(r - g) < 1e-9) return pmt * n / (1 + r); // edge case r == g
+  return pmt * (1 - Math.pow((1 + g) / (1 + r), n)) / (r - g);
+}
+
+let chart;
+function update() {
+  const cheap = +document.getElementById('cheap').value;
+  const life = +document.getElementById('life').value;
+  const actual = +document.getElementById('actual').value;
+  const rate = +document.getElementById('rate').value / 100;
+  const infl = +document.getElementById('infl').value / 100;
+
+  document.getElementById('cheap-out').textContent = fmt(cheap) + ' / yr';
+  document.getElementById('life-out').textContent = life + ' yrs';
+  document.getElementById('actual-out').textContent = fmt(actual);
+  document.getElementById('rate-out').textContent = (rate * 100).toFixed(1) + '%';
+  document.getElementById('infl-out').textContent = (infl * 100).toFixed(1) + '%';
+
+  const breakeven = growingAnnuityPV(cheap, rate, infl, life);
+  const delta = actual - breakeven;
+  const multiple = breakeven / cheap;
+
+  document.getElementById('m-breakeven').textContent = fmt(breakeven);
+  document.getElementById('m-actual').textContent = fmt(actual);
+  document.getElementById('m-delta').textContent = (delta >= 0 ? '+' : '-') + '$' + Math.round(Math.abs(delta)).toLocaleString();
+  document.getElementById('m-delta').style.color = delta <= 0 ? '#4caf7d' : '#e05c5c';
+  document.getElementById('m-multiple').textContent = multiple.toFixed(1) + '×';
+
+  const v = document.getElementById('verdict');
+  if (delta <= 0) {
+    v.className = 'verdict verdict-good';
+    v.textContent = `The quality item at ${fmt(actual)} is below the breakeven of ${fmt(breakeven)} — it's worth buying. You'd save ${fmt(-delta)} in present value terms vs buying cheap (with costs rising at ${(infl*100).toFixed(1)}%/yr) and investing the difference.`;
+  } else {
+    v.className = 'verdict verdict-bad';
+    v.textContent = `The quality item at ${fmt(actual)} exceeds the breakeven of ${fmt(breakeven)} by ${fmt(delta)}. Even accounting for inflation raising the cheap item's cost at ${(infl*100).toFixed(1)}%/yr, you're better off buying cheap and investing the difference at ${(rate*100).toFixed(1)}%.`;
+  }
+
+  const labels = [], cumCheap = [], beData = [], actualData = [];
+  let nomCost = 0;
+  for (let y = 0; y <= life; y++) {
+    labels.push('Yr ' + y);
+    cumCheap.push(Math.round(nomCost));
+    beData.push(Math.round(breakeven));
+    actualData.push(Math.round(actual));
+    // next year's cheap cost grows with inflation
+    nomCost += cheap * Math.pow(1 + infl, y);
+  }
+
+  const ds = [
+    { label: 'Cumulative cheap cost', data: cumCheap, borderColor: '#378ADD', backgroundColor: '#378ADD18', tension: 0.3, borderWidth: 2, pointRadius: 2, fill: false },
+    { label: 'Breakeven price', data: beData, borderColor: '#639922', borderDash: [6, 3], backgroundColor: 'transparent', tension: 0, borderWidth: 2, pointRadius: 0, fill: false },
+    { label: 'Actual quality price', data: actualData, borderColor: '#D4537E', borderDash: [3, 3], backgroundColor: 'transparent', tension: 0, borderWidth: 2, pointRadius: 0, fill: false },
+  ];
+
+  if (chart) {
+    chart.data.labels = labels;
+    chart.data.datasets = ds;
+    chart.update();
+  } else {
+    chart = new Chart(document.getElementById('chart'), {
+      type: 'line',
+      data: { labels, datasets: ds },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: {
+            ticks: { callback: v => '$' + (v >= 1000 ? (v/1000).toFixed(0) + 'K' : v), font: { size: 11 }, color: '#9094a8' },
+            grid: { color: 'rgba(255,255,255,0.06)' }
+          },
+          x: {
+            ticks: { font: { size: 11 }, color: '#9094a8', maxRotation: 0, autoSkip: true },
+            grid: { display: false }
+          }
+        }
+      }
+    });
+  }
+}
+
+['cheap','life','actual','rate','infl'].forEach(id => document.getElementById(id).addEventListener('input', update));
+update();
+</script>
