@@ -16,10 +16,31 @@
     --border-radius-lg: 12px;
   }
   body, html { background: var(--color-background); color: var(--color-text-primary); margin: 0; padding: 0; }
-  input[type=range] { accent-color: #378ADD; }
-  .ctrl-group { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 130px; }
+  .ctrl-group { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 140px; }
   .ctrl-group label { font-size: 12px; color: var(--color-text-secondary); }
-  .ctrl-group .val { font-size: 14px; font-weight: 500; color: var(--color-text-primary); }
+  .input-wrap { position: relative; display: flex; align-items: center; }
+  .input-wrap .prefix, .input-wrap .suffix {
+    position: absolute; font-size: 14px; color: var(--color-text-secondary); pointer-events: none;
+  }
+  .input-wrap .prefix { left: 10px; }
+  .input-wrap .suffix { right: 10px; }
+  .ctrl-group input[type=number] {
+    width: 100%; box-sizing: border-box;
+    background: var(--color-background);
+    border: 1px solid #2a2d3a;
+    border-radius: var(--border-radius-md);
+    color: var(--color-text-primary);
+    font-size: 15px; font-weight: 500;
+    padding: 8px 10px;
+    outline: none;
+    transition: border-color 0.15s;
+    -moz-appearance: textfield;
+  }
+  .ctrl-group input[type=number]::-webkit-inner-spin-button,
+  .ctrl-group input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+  .ctrl-group input[type=number]:focus { border-color: #378ADD; }
+  .has-prefix input[type=number] { padding-left: 22px; }
+  .has-suffix input[type=number] { padding-right: 28px; }
   .metric { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 0.75rem 1rem; }
   .mlabel { font-size: 11px; color: var(--color-text-secondary); margin-bottom: 2px; }
   .mvalue { font-size: 20px; font-weight: 500; }
@@ -34,29 +55,39 @@
 
 <div style="display:flex; flex-wrap:wrap; gap:16px; margin:1rem 0 1.5rem; padding:1rem; background:var(--color-background-secondary); border-radius:var(--border-radius-lg);">
   <div class="ctrl-group">
-    <label>Annual cost of cheap item (today's £)</label>
-    <input type="range" min="10" max="2000" step="10" value="200" id="cheap">
-    <span class="val" id="cheap-out">$200 / yr</span>
+    <label>Annual cost of cheap item (today's $)</label>
+    <div class="input-wrap has-prefix">
+      <span class="prefix">$</span>
+      <input type="number" id="cheap" value="200" min="1" step="1">
+    </div>
   </div>
   <div class="ctrl-group">
-    <label>Expected lifespan of quality item (years)</label>
-    <input type="range" min="2" max="40" step="1" value="15" id="life">
-    <span class="val" id="life-out">15 yrs</span>
+    <label>Lifespan of quality item (years)</label>
+    <div class="input-wrap has-suffix">
+      <input type="number" id="life" value="15" min="1" max="100" step="1">
+      <span class="suffix">yr</span>
+    </div>
   </div>
   <div class="ctrl-group">
     <label>Actual price of quality item</label>
-    <input type="range" min="50" max="50000" step="50" value="12000" id="actual">
-    <span class="val" id="actual-out">$12,000</span>
+    <div class="input-wrap has-prefix">
+      <span class="prefix">$</span>
+      <input type="number" id="actual" value="12000" min="0" step="1">
+    </div>
   </div>
   <div class="ctrl-group">
     <label>Return rate (% p.a.)</label>
-    <input type="range" min="3" max="12" step="0.5" value="7" id="rate">
-    <span class="val" id="rate-out">7.0%</span>
+    <div class="input-wrap has-suffix">
+      <input type="number" id="rate" value="7" min="0" max="100" step="0.1">
+      <span class="suffix">%</span>
+    </div>
   </div>
   <div class="ctrl-group">
     <label>Inflation rate (% p.a.)</label>
-    <input type="range" min="0" max="10" step="0.5" value="2.5" id="infl">
-    <span class="val" id="infl-out">2.5%</span>
+    <div class="input-wrap has-suffix">
+      <input type="number" id="infl" value="2.5" min="0" max="100" step="0.1">
+      <span class="suffix">%</span>
+    </div>
   </div>
 </div>
 
@@ -103,25 +134,26 @@
 <script>
 const fmt = v => '$' + Math.round(v).toLocaleString();
 
-// Growing annuity PV: payments grow at rate g, discounted at rate r, for n periods
 function growingAnnuityPV(pmt, r, g, n) {
-  if (Math.abs(r - g) < 1e-9) return pmt * n / (1 + r); // edge case r == g
+  if (Math.abs(r - g) < 1e-9) return pmt * n / (1 + r);
   return pmt * (1 - Math.pow((1 + g) / (1 + r), n)) / (r - g);
 }
 
 let chart;
 function update() {
-  const cheap = +document.getElementById('cheap').value;
-  const life = +document.getElementById('life').value;
-  const actual = +document.getElementById('actual').value;
-  const rate = +document.getElementById('rate').value / 100;
-  const infl = +document.getElementById('infl').value / 100;
+  const cheap = parseFloat(document.getElementById('cheap').value) || 0;
+  const life = parseInt(document.getElementById('life').value) || 0;
+  const actual = parseFloat(document.getElementById('actual').value) || 0;
+  const rate = (parseFloat(document.getElementById('rate').value) || 0) / 100;
+  const infl = (parseFloat(document.getElementById('infl').value) || 0) / 100;
 
-  document.getElementById('cheap-out').textContent = fmt(cheap) + ' / yr';
-  document.getElementById('life-out').textContent = life + ' yrs';
-  document.getElementById('actual-out').textContent = fmt(actual);
-  document.getElementById('rate-out').textContent = (rate * 100).toFixed(1) + '%';
-  document.getElementById('infl-out').textContent = (infl * 100).toFixed(1) + '%';
+  if (!cheap || !life || rate <= infl) {
+    document.getElementById('verdict').className = 'verdict verdict-neutral';
+    document.getElementById('verdict').textContent = rate <= infl && cheap && life
+      ? 'Return rate must be higher than inflation rate for this model to work.'
+      : 'Fill in all fields to see results.';
+    return;
+  }
 
   const breakeven = growingAnnuityPV(cheap, rate, infl, life);
   const delta = actual - breakeven;
@@ -149,7 +181,6 @@ function update() {
     cumCheap.push(Math.round(nomCost));
     beData.push(Math.round(breakeven));
     actualData.push(Math.round(actual));
-    // next year's cheap cost grows with inflation
     nomCost += cheap * Math.pow(1 + infl, y);
   }
 
