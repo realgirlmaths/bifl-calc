@@ -1,0 +1,131 @@
+<style>
+  .examples-wrap { padding: 1.5rem 0; display: flex; flex-direction: column; gap: 2rem; }
+  .example-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); overflow: hidden; }
+  .card-header { padding: 1rem 1.25rem 0.75rem; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .example-num { font-size: 11px; font-weight: 500; color: var(--color-text-tertiary); letter-spacing: 0.06em; text-transform: uppercase; margin: 0 0 4px; }
+  .example-title { font-size: 15px; font-weight: 500; color: var(--color-text-primary); margin: 0; }
+  .card-body { padding: 1rem 1.25rem; }
+  .context-block { font-size: 13px; color: var(--color-text-secondary); line-height: 1.6; margin: 0 0 1rem; }
+  .io-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .io-section { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 0.75rem 1rem; }
+  .io-label { font-size: 11px; font-weight: 500; color: var(--color-text-tertiary); letter-spacing: 0.06em; text-transform: uppercase; margin: 0 0 8px; }
+  .io-row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 3px 0; }
+  .io-key { font-size: 12px; color: var(--color-text-secondary); }
+  .io-val { font-size: 12px; font-weight: 500; color: var(--color-text-primary); text-align: right; }
+  .output-section { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 0.75rem 1rem; }
+  .output-row { display: flex; justify-content: space-between; align-items: baseline; }
+  .output-key { font-size: 12px; color: var(--color-text-secondary); }
+  .output-val { font-size: 16px; font-weight: 500; color: var(--color-text-primary); }
+  .conclusion-wrap { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .tag { font-size: 12px; padding: 4px 10px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-tertiary); color: var(--color-text-secondary); }
+  .bottom-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+  .multi-output { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 0.75rem 1rem; margin-top: 12px; }
+</style>
+<div class="examples-wrap">
+
+  <div class="example-card">
+    <div class="card-header">
+      <p class="example-num">Example 1</p>
+      <p class="example-title">Costume jewellery vs fine jewellery (designer brand)</p>
+    </div>
+    <div class="card-body">
+      <p class="context-block">A piece of costume jewellery, a bangle brass with gold plating, from a French family-owned brand costs £150. A similarly designed piece of fine jewellery, a bangle of 18k gold, from Dior costs £9000.</p>
+      <div class="io-grid">
+        <div class="io-section">
+          <p class="io-label">Input</p>
+          <div class="io-row"><span class="io-key">Cheap item cost</span><span class="io-val">£150</span></div>
+          <div class="io-row"><span class="io-key">Replaced every</span><span class="io-val">2 years</span></div>
+          <div class="io-row"><span class="io-key">Lifespan of quality item</span><span class="io-val">15 years</span></div>
+          <div class="io-row"><span class="io-key">Actual price of quality item</span><span class="io-val">£9,000</span></div>
+          <div class="io-row"><span class="io-key">Return rate</span><span class="io-val">7%</span></div>
+          <div class="io-row"><span class="io-key">Inflation rate</span><span class="io-val">2.5%</span></div>
+          <div class="io-row"><span class="io-key">Annual appreciation</span><span class="io-val">10% (optimistic)</span></div>
+          <div class="io-row"><span class="io-key">Retained value at resale</span><span class="io-val">60%</span></div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <div class="output-section">
+            <p class="io-label">Output</p>
+            <div class="output-row"><span class="output-key">Breakeven max price</span><span class="output-val">£6,192</span></div>
+          </div>
+          <div class="io-section" style="flex: 1;">
+            <p class="io-label">Conclusion</p>
+            <p style="font-size: 12px; color: var(--color-text-secondary); margin: 0 0 4px;">Fine jewellery is overpriced</p>
+            <p style="font-size: 12px; color: var(--color-text-secondary); margin: 0;">Buy costume jewellery</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="example-card">
+    <div class="card-header">
+      <p class="example-num">Example 2</p>
+      <p class="example-title">Costume jewellery vs fine jewellery (same midmarket brand)</p>
+    </div>
+    <div class="card-body">
+      <p class="context-block">A bangle of 18k gold vermeil costs £279. From the same brand, with the same design, a bangle of 14k pure gold costs £2750. Annual appreciation in line with inflation only as this is not a designer brand with the ability to continually increase retail price. Resale value is low as there appears to be significant markup on the estimated weight in gold; could be lower if considering melt value.</p>
+      <div class="io-grid">
+        <div class="io-section">
+          <p class="io-label">Input</p>
+          <div class="io-row"><span class="io-key">Cheap item cost</span><span class="io-val">£279</span></div>
+          <div class="io-row"><span class="io-key">Replaced every</span><span class="io-val">2 years</span></div>
+          <div class="io-row"><span class="io-key">Lifespan of quality item</span><span class="io-val">15 years</span></div>
+          <div class="io-row"><span class="io-key">Actual price of quality item</span><span class="io-val">£2,750</span></div>
+          <div class="io-row"><span class="io-key">Return rate</span><span class="io-val">7%</span></div>
+          <div class="io-row"><span class="io-key">Inflation rate</span><span class="io-val">2.5%</span></div>
+          <div class="io-row"><span class="io-key">Annual appreciation</span><span class="io-val">2.5%</span></div>
+          <div class="io-row"><span class="io-key">Retained value at resale</span><span class="io-val">50%</span></div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <div class="output-section">
+            <p class="io-label">Output</p>
+            <div class="output-row"><span class="output-key">Breakeven max price</span><span class="output-val">£2,194</span></div>
+          </div>
+          <div class="io-section" style="flex: 1;">
+            <p class="io-label">Conclusion</p>
+            <p style="font-size: 12px; color: var(--color-text-secondary); margin: 0 0 4px;">Fine jewellery is overpriced</p>
+            <p style="font-size: 12px; color: var(--color-text-secondary); margin: 0;">Buy costume jewellery</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="example-card">
+    <div class="card-header">
+      <p class="example-num">Example 3</p>
+      <p class="example-title">Cheap loafers vs Loro Piana loafers</p>
+    </div>
+    <div class="card-body">
+      <p class="context-block">A pair of beige loafers lined with faux fur cost £50 when purchased in Tokyo on vacation. Loro Piana's Summer Charms Walk Loafers, suede lined with beaver fur, cost £1785. No resale value expected despite the high end brand; the shoes will probably eventually get worn out. Calculator does not have ability to factor in longer lifespan with repairs.</p>
+      <div class="io-grid">
+        <div class="io-section">
+          <p class="io-label">Input</p>
+          <div class="io-row"><span class="io-key">Cheap item cost</span><span class="io-val">£50</span></div>
+          <div class="io-row"><span class="io-key">Replaced every</span><span class="io-val">1 year</span></div>
+          <div class="io-row"><span class="io-key">Lifespan of quality item</span><span class="io-val">20 years</span></div>
+          <div class="io-row"><span class="io-key">Actual price of quality item</span><span class="io-val">£1,785</span></div>
+          <div class="io-row"><span class="io-key">Return rate</span><span class="io-val">7%</span></div>
+          <div class="io-row"><span class="io-key">Inflation rate</span><span class="io-val">2.5%</span></div>
+          <div class="io-row"><span class="io-key">Annual appreciation</span><span class="io-val">0%</span></div>
+          <div class="io-row"><span class="io-key">Retained value at resale</span><span class="io-val">0%</span></div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <div class="output-section">
+            <p class="io-label">Output</p>
+            <div class="output-row"><span class="output-key">Breakeven max price</span><span class="output-val">£641</span></div>
+            <div style="border-top: 0.5px solid var(--color-border-tertiary); margin: 8px 0;"></div>
+            <div class="io-row"><span class="io-key">For 10 years</span><span class="io-val" style="font-size: 13px; font-weight: 500;">£388</span></div>
+            <div class="io-row"><span class="io-key">For 5 years</span><span class="io-val" style="font-size: 13px; font-weight: 500;">£215</span></div>
+          </div>
+          <div class="io-section" style="flex: 1;">
+            <p class="io-label">Conclusion</p>
+            <p style="font-size: 12px; color: var(--color-text-secondary); margin: 0 0 4px;">Loro Piana is overpriced</p>
+            <p style="font-size: 12px; color: var(--color-text-secondary); margin: 0;">May be possible to get bespoke shoes for this price range...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
