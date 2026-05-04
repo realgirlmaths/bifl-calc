@@ -1,97 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
 <style>
   :root {
-    --color-background: #0f1117;
-    --color-background-secondary: #1a1d27;
-    --color-background-success: #0d2b1a;
-    --color-background-danger: #2b0d0d;
-    --color-text-primary: #e8eaf0;
-    --color-text-secondary: #9094a8;
-    --color-text-tertiary: #5c6070;
-    --color-text-success: #4caf7d;
-    --color-text-danger: #e05c5c;
-    --color-border-success: #1e5c38;
-    --color-border-danger: #5c1e1e;
-    --color-border-tertiary: #2a2d3a;
-    --border-radius-md: 8px;
-    --border-radius-lg: 12px;
+    --bg: #0f1117;
+    --bg2: #1a1d27;
+    --bg-success: #0d2b1a;
+    --bg-danger: #2b0d0d;
+    --text: #e8eaf0;
+    --text2: #9094a8;
+    --text3: #5c6070;
+    --success: #4caf7d;
+    --danger: #e05c5c;
+    --border-success: #1e5c38;
+    --border-danger: #5c1e1e;
+    --border3: #2a2d3a;
+    --radius: 8px;
+    --radius-lg: 12px;
   }
-  body, html { background: var(--color-background); color: var(--color-text-primary); margin: 0; padding: 0; }
-  .ctrl-group { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 140px; }
-  .ctrl-group label { font-size: 12px; color: var(--color-text-secondary); }
+  *, *::before, *::after { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; margin: 0; padding: 1rem; }
+  h1 { font-size: 16px; font-weight: 600; margin: 0 0 1rem; color: var(--text); }
+  .fields { display: flex; flex-wrap: wrap; gap: 14px; padding: 1rem; background: var(--bg2); border-radius: var(--radius-lg); margin-bottom: 1.25rem; }
+  .field { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 130px; }
+  .field label { font-size: 12px; color: var(--text2); }
   .input-wrap { position: relative; display: flex; align-items: center; }
-  .input-wrap .prefix, .input-wrap .suffix {
-    position: absolute; font-size: 14px; color: var(--color-text-secondary); pointer-events: none;
-  }
-  .input-wrap .prefix { left: 10px; }
-  .input-wrap .suffix { right: 10px; }
-  .ctrl-group input[type=number] {
-    width: 100%; box-sizing: border-box;
-    background: var(--color-background);
-    border: 1px solid #2a2d3a;
-    border-radius: var(--border-radius-md);
-    color: var(--color-text-primary);
-    font-size: 15px; font-weight: 500;
-    padding: 8px 10px;
-    outline: none;
-    transition: border-color 0.15s;
-    -moz-appearance: textfield;
-  }
-  .ctrl-group input[type=number]::-webkit-inner-spin-button,
-  .ctrl-group input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
-  .ctrl-group input[type=number]:focus { border-color: #378ADD; }
-  .has-prefix input[type=number] { padding-left: 22px; }
-  .has-suffix input[type=number] { padding-right: 28px; }
-  .metric { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 0.75rem 1rem; }
-  .mlabel { font-size: 11px; color: var(--color-text-secondary); margin-bottom: 2px; }
+  .input-wrap span { position: absolute; font-size: 14px; color: var(--text2); pointer-events: none; }
+  .input-wrap .pre { left: 9px; }
+  .input-wrap .suf { right: 9px; }
+  .input-wrap input { width: 100%; background: var(--bg); border: 1px solid var(--border3); border-radius: var(--radius); color: var(--text); font-size: 15px; font-weight: 500; padding: 7px 10px; outline: none; -moz-appearance: textfield; }
+  .input-wrap input::-webkit-inner-spin-button, .input-wrap input::-webkit-outer-spin-button { -webkit-appearance: none; }
+  .input-wrap input:focus { border-color: #378ADD; }
+  .has-pre input { padding-left: 22px; }
+  .has-suf input { padding-right: 32px; }
+  .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(0,1fr)); gap: 10px; margin-bottom: 1.25rem; }
+  .metric { background: var(--bg2); border-radius: var(--radius); padding: 0.75rem 1rem; }
+  .mlabel { font-size: 11px; color: var(--text2); margin-bottom: 2px; }
   .mvalue { font-size: 20px; font-weight: 500; }
-  .msub { font-size: 11px; color: var(--color-text-tertiary); margin-top: 2px; }
-  .verdict { border-radius: var(--border-radius-md); padding: 0.75rem 1rem; font-size: 13px; line-height: 1.6; margin-bottom: 1.5rem; border: 0.5px solid; }
-  .verdict-good { background: var(--color-background-success); color: var(--color-text-success); border-color: var(--color-border-success); }
-  .verdict-bad { background: var(--color-background-danger); color: var(--color-text-danger); border-color: var(--color-border-danger); }
-  .verdict-neutral { background: var(--color-background-secondary); color: var(--color-text-secondary); border-color: var(--color-border-tertiary); }
+  .msub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .verdict { border-radius: var(--radius); padding: 0.75rem 1rem; font-size: 13px; line-height: 1.6; margin-bottom: 1.25rem; border: 0.5px solid; }
+  .good { background: var(--bg-success); color: var(--success); border-color: var(--border-success); }
+  .bad  { background: var(--bg-danger);  color: var(--danger);  border-color: var(--border-danger); }
+  .neutral { background: var(--bg2); color: var(--text2); border-color: var(--border3); }
+  .legend { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 8px; font-size: 12px; color: var(--text2); }
+  .legend span { display: flex; align-items: center; gap: 5px; }
+  .swatch { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+  .chart-wrap { position: relative; width: 100%; height: 300px; }
+  .explainer { margin-top: 1rem; padding: 0.75rem 1rem; background: var(--bg2); border-radius: var(--radius); font-size: 13px; color: var(--text2); line-height: 1.6; }
+  .explainer strong { color: var(--text); }
 </style>
+</head>
+<body>
 
-<h2 class="sr-only">Interactive calculator showing the maximum price you should pay for a long-lasting quality item versus buying cheaper replacements annually, given investment returns and inflation</h2>
+<h1>Buy It For Life — Breakeven Calculator</h1>
 
-<div style="display:flex; flex-wrap:wrap; gap:16px; margin:1rem 0 1.5rem; padding:1rem; background:var(--color-background-secondary); border-radius:var(--border-radius-lg);">
-  <div class="ctrl-group">
-    <label>Annual cost of cheap item (today's $)</label>
-    <div class="input-wrap has-prefix">
-      <span class="prefix">$</span>
-      <input type="number" id="cheap" value="200" min="1" step="1">
+<div class="fields">
+  <div class="field">
+    <label>Cost of cheap item (today's $)</label>
+    <div class="input-wrap has-pre">
+      <span class="pre">$</span>
+      <input type="number" id="cheap" value="200" min="0" step="1">
     </div>
   </div>
-  <div class="ctrl-group">
+  <div class="field">
+    <label>Replaced every (years)</label>
+    <div class="input-wrap has-suf">
+      <input type="number" id="freq" value="1" min="0.1" step="0.1">
+      <span class="suf">yr</span>
+    </div>
+  </div>
+  <div class="field">
     <label>Lifespan of quality item (years)</label>
-    <div class="input-wrap has-suffix">
-      <input type="number" id="life" value="15" min="1" max="100" step="1">
-      <span class="suffix">yr</span>
+    <div class="input-wrap has-suf">
+      <input type="number" id="life" value="15" min="1" step="1">
+      <span class="suf">yr</span>
     </div>
   </div>
-  <div class="ctrl-group">
+  <div class="field">
     <label>Actual price of quality item</label>
-    <div class="input-wrap has-prefix">
-      <span class="prefix">$</span>
+    <div class="input-wrap has-pre">
+      <span class="pre">$</span>
       <input type="number" id="actual" value="12000" min="0" step="1">
     </div>
   </div>
-  <div class="ctrl-group">
+  <div class="field">
     <label>Return rate (% p.a.)</label>
-    <div class="input-wrap has-suffix">
-      <input type="number" id="rate" value="7" min="0" max="100" step="0.1">
-      <span class="suffix">%</span>
+    <div class="input-wrap has-suf">
+      <input type="number" id="rate" value="7" min="0" step="0.1">
+      <span class="suf">%</span>
     </div>
   </div>
-  <div class="ctrl-group">
+  <div class="field">
     <label>Inflation rate (% p.a.)</label>
-    <div class="input-wrap has-suffix">
-      <input type="number" id="infl" value="2.5" min="0" max="100" step="0.1">
-      <span class="suffix">%</span>
+    <div class="input-wrap has-suf">
+      <input type="number" id="infl" value="2.5" min="0" step="0.1">
+      <span class="suf">%</span>
     </div>
   </div>
 </div>
 
-<div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(0,1fr)); gap:10px; margin-bottom:1.25rem;">
+<div class="metrics">
   <div class="metric">
     <div class="mlabel">Breakeven max price</div>
     <div class="mvalue" id="m-breakeven" style="color:#378ADD;">—</div>
@@ -110,68 +119,82 @@
   <div class="metric">
     <div class="mlabel">Implied max multiple</div>
     <div class="mvalue" id="m-multiple">—</div>
-    <div class="msub">quality / annual cheap cost</div>
+    <div class="msub">vs annual cheap cost</div>
   </div>
 </div>
 
-<div class="verdict" id="verdict">—</div>
+<div class="verdict neutral" id="verdict">Fill in all fields to see results.</div>
 
-<div style="display:flex; flex-wrap:wrap; gap:14px; margin-bottom:8px; font-size:12px; color:var(--color-text-secondary);">
-  <span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:2px;background:#378ADD;display:inline-block;"></span>Cumulative cheap cost (nominal)</span>
-  <span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:2px;background:#639922;display:inline-block;"></span>Breakeven price</span>
-  <span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:2px;background:#D4537E;display:inline-block;"></span>Actual quality price</span>
+<div class="legend">
+  <span><span class="swatch" style="background:#378ADD"></span>Cumulative cheap cost (nominal)</span>
+  <span><span class="swatch" style="background:#639922"></span>Breakeven price</span>
+  <span><span class="swatch" style="background:#D4537E"></span>Actual quality price</span>
 </div>
 
-<div style="position:relative; width:100%; height:300px;">
-  <canvas id="chart" role="img" aria-label="Line chart comparing cumulative cost of cheap replacements versus the breakeven and actual price of the quality item over the item's lifespan">Loading chart.</canvas>
+<div class="chart-wrap">
+  <canvas id="chart"></canvas>
 </div>
 
-<div style="margin-top:1rem; padding:0.75rem 1rem; background:var(--color-background-secondary); border-radius:var(--border-radius-md); font-size:13px; color:var(--color-text-secondary); line-height:1.6;">
-  <strong style="color:var(--color-text-primary);">How this works:</strong> The breakeven price is the present value of all future cheap purchases, where each year's cost grows with inflation and is discounted at your return rate (growing annuity PV). This is the most you could rationally pay for the quality item. The cumulative cheap cost line shows actual nominal spend including inflation each year.
+<div class="explainer">
+  <strong>How this works:</strong> The breakeven price is the present value of all future cheap purchases, where each year's cost grows with inflation and is discounted at your return rate (growing annuity PV). This is the most you could rationally pay for the quality item. The cumulative cheap cost line shows actual nominal spend including inflation each year.
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
-const fmt = v => '$' + Math.round(v).toLocaleString();
+function fmt(v) { return '$' + Math.round(v).toLocaleString(); }
 
 function growingAnnuityPV(pmt, r, g, n) {
   if (Math.abs(r - g) < 1e-9) return pmt * n / (1 + r);
   return pmt * (1 - Math.pow((1 + g) / (1 + r), n)) / (r - g);
 }
 
-let chart;
-function update() {
-  const cheap = parseFloat(document.getElementById('cheap').value) || 0;
-  const life = parseInt(document.getElementById('life').value) || 0;
-  const actual = parseFloat(document.getElementById('actual').value) || 0;
-  const rate = (parseFloat(document.getElementById('rate').value) || 0) / 100;
-  const infl = (parseFloat(document.getElementById('infl').value) || 0) / 100;
+function freqLabel(freq) {
+  if (freq === 1) return 'per year';
+  if (freq < 1) return 'every ' + Math.round(freq * 12) + ' months';
+  return 'every ' + freq + ' years';
+}
 
-  if (!cheap || !life || rate <= infl) {
-    document.getElementById('verdict').className = 'verdict verdict-neutral';
-    document.getElementById('verdict').textContent = rate <= infl && cheap && life
-      ? 'Return rate must be higher than inflation rate for this model to work.'
-      : 'Fill in all fields to see results.';
+let chart;
+
+function update() {
+  const cheap  = parseFloat(document.getElementById('cheap').value)  || 0;
+  const freq   = parseFloat(document.getElementById('freq').value)   || 1;
+  const life   = parseFloat(document.getElementById('life').value)   || 0;
+  const actual = parseFloat(document.getElementById('actual').value) || 0;
+  const rate   = parseFloat(document.getElementById('rate').value)   / 100 || 0;
+  const infl   = parseFloat(document.getElementById('infl').value)   / 100 || 0;
+
+  const verdict = document.getElementById('verdict');
+
+  if (!cheap || !life || !rate) {
+    verdict.className = 'verdict neutral';
+    verdict.textContent = 'Fill in all fields to see results.';
+    return;
+  }
+  if (rate <= infl) {
+    verdict.className = 'verdict neutral';
+    verdict.textContent = 'Return rate must be higher than inflation rate for this model to work.';
     return;
   }
 
-  const breakeven = growingAnnuityPV(cheap, rate, infl, life);
+  const annualCheap = cheap / freq;
+  const breakeven = growingAnnuityPV(annualCheap, rate, infl, life);
   const delta = actual - breakeven;
-  const multiple = breakeven / cheap;
+  const multiple = breakeven / annualCheap;
 
   document.getElementById('m-breakeven').textContent = fmt(breakeven);
   document.getElementById('m-actual').textContent = fmt(actual);
-  document.getElementById('m-delta').textContent = (delta >= 0 ? '+' : '-') + '$' + Math.round(Math.abs(delta)).toLocaleString();
+  document.getElementById('m-delta').textContent = (delta >= 0 ? '+' : '\u2212') + '$' + Math.round(Math.abs(delta)).toLocaleString();
   document.getElementById('m-delta').style.color = delta <= 0 ? '#4caf7d' : '#e05c5c';
-  document.getElementById('m-multiple').textContent = multiple.toFixed(1) + '×';
+  document.getElementById('m-multiple').textContent = multiple.toFixed(1) + '\u00d7';
 
-  const v = document.getElementById('verdict');
+  const fl = freqLabel(freq);
   if (delta <= 0) {
-    v.className = 'verdict verdict-good';
-    v.textContent = `The quality item at ${fmt(actual)} is below the breakeven of ${fmt(breakeven)} — it's worth buying. You'd save ${fmt(-delta)} in present value terms vs buying cheap (with costs rising at ${(infl*100).toFixed(1)}%/yr) and investing the difference.`;
+    verdict.className = 'verdict good';
+    verdict.textContent = 'The quality item at ' + fmt(actual) + ' is below the breakeven of ' + fmt(breakeven) + ' — it\'s worth buying. You\'d save ' + fmt(-delta) + ' in present value terms vs buying cheap (' + fmt(cheap) + ' ' + fl + ', rising at ' + (infl * 100).toFixed(1) + '%/yr) and investing the difference.';
   } else {
-    v.className = 'verdict verdict-bad';
-    v.textContent = `The quality item at ${fmt(actual)} exceeds the breakeven of ${fmt(breakeven)} by ${fmt(delta)}. Even accounting for inflation raising the cheap item's cost at ${(infl*100).toFixed(1)}%/yr, you're better off buying cheap and investing the difference at ${(rate*100).toFixed(1)}%.`;
+    verdict.className = 'verdict bad';
+    verdict.textContent = 'The quality item at ' + fmt(actual) + ' exceeds the breakeven of ' + fmt(breakeven) + ' by ' + fmt(delta) + '. Even with costs rising at ' + (infl * 100).toFixed(1) + '%/yr, you\'re better off buying cheap (' + fmt(cheap) + ' ' + fl + ') and investing the difference at ' + (rate * 100).toFixed(1) + '%.';
   }
 
   const labels = [], cumCheap = [], beData = [], actualData = [];
@@ -181,13 +204,13 @@ function update() {
     cumCheap.push(Math.round(nomCost));
     beData.push(Math.round(breakeven));
     actualData.push(Math.round(actual));
-    nomCost += cheap * Math.pow(1 + infl, y);
+    nomCost += annualCheap * Math.pow(1 + infl, y);
   }
 
   const ds = [
     { label: 'Cumulative cheap cost', data: cumCheap, borderColor: '#378ADD', backgroundColor: '#378ADD18', tension: 0.3, borderWidth: 2, pointRadius: 2, fill: false },
-    { label: 'Breakeven price', data: beData, borderColor: '#639922', borderDash: [6, 3], backgroundColor: 'transparent', tension: 0, borderWidth: 2, pointRadius: 0, fill: false },
-    { label: 'Actual quality price', data: actualData, borderColor: '#D4537E', borderDash: [3, 3], backgroundColor: 'transparent', tension: 0, borderWidth: 2, pointRadius: 0, fill: false },
+    { label: 'Breakeven price',        data: beData,   borderColor: '#639922', borderDash: [6,3], backgroundColor: 'transparent', tension: 0, borderWidth: 2, pointRadius: 0, fill: false },
+    { label: 'Actual quality price',   data: actualData, borderColor: '#D4537E', borderDash: [3,3], backgroundColor: 'transparent', tension: 0, borderWidth: 2, pointRadius: 0, fill: false },
   ];
 
   if (chart) {
@@ -199,7 +222,8 @@ function update() {
       type: 'line',
       data: { labels, datasets: ds },
       options: {
-        responsive: true, maintainAspectRatio: false,
+        responsive: true,
+        maintainAspectRatio: false,
         plugins: { legend: { display: false } },
         scales: {
           y: {
@@ -216,6 +240,10 @@ function update() {
   }
 }
 
-['cheap','life','actual','rate','infl'].forEach(id => document.getElementById(id).addEventListener('input', update));
+['cheap','freq','life','actual','rate','infl'].forEach(id => {
+  document.getElementById(id).addEventListener('input', update);
+});
 update();
 </script>
+</body>
+</html>
