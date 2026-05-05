@@ -47,6 +47,7 @@
   .legend span { display: flex; align-items: center; gap: 5px; }
   .swatch { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
   .chart-wrap { position: relative; width: 100%; height: 300px; }
+  .chart-section-label { font-size: 11px; color: var(--text2); letter-spacing: 0.05em; text-transform: uppercase; margin: 1.25rem 0 0.4rem; }
   .explainer { margin-top: 1rem; padding: 0.75rem 1rem; background: var(--bg2); border-radius: var(--radius); font-size: 13px; color: var(--text2); line-height: 1.6; }
   .explainer strong { color: var(--text); }
 </style>
@@ -149,8 +150,19 @@
   <canvas id="chart"></canvas>
 </div>
 
+<p class="chart-section-label">Portfolio value over time</p>
+
+<div class="legend">
+  <span><span class="swatch" style="background:#639922"></span>Buy cheap — invest the difference</span>
+  <span><span class="swatch" style="background:#D4537E"></span>Buy quality — portfolio value incl. resale</span>
+</div>
+
+<div class="chart-wrap">
+  <canvas id="chart2"></canvas>
+</div>
+
 <div class="explainer">
-  <strong>How this works:</strong> The breakeven price is solved so that the quality item's net cost (purchase price minus the present value of its resale proceeds) equals the present value of all future cheap purchases (a growing annuity discounted at your return rate). Resale proceeds are the breakeven price appreciating at the item's annual rate over its lifespan, multiplied by the retained value fraction, discounted back to today. Because both sides scale with price, the equation resolves to a closed-form: <em>P = annuityPV / (1 − retain × ((1+appr)/(1+rate))^n)</em>.
+  <strong>How this works:</strong> The breakeven price is solved so that the quality item's net cost (purchase price minus the present value of its resale proceeds) equals the present value of all future cheap purchases (a growing annuity discounted at your return rate). Because both sides scale with price, the equation resolves to a closed-form: <em>P = annuityPV / (1 − retain × ((1+appr)/(1+rate))^n)</em>. The portfolio chart uses the actual quality price as the shared starting capital: the cheap scenario invests that sum and withdraws each year's inflation-adjusted cheap cost; the quality scenario converts the capital into the item (shown at its realisable value — purchase price × retained fraction — from day one, then appreciating from that base).
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
@@ -169,6 +181,7 @@ function freqLabel(freq) {
 }
 
 let chart;
+let chart2;
 
 function update() {
   const cheap  = parseFloat(document.getElementById('cheap').value)  || 0;
@@ -199,6 +212,11 @@ function update() {
   // At breakeven: P - P × retain × ((1+appr)/(1+rate))^n = annuityPV
   // => P = annuityPV / (1 - retain × ((1+appr)/(1+rate))^n)
   const resaleFactor = retain * Math.pow((1 + appr) / (1 + rate), life);
+  if (resaleFactor >= 1) {
+    verdict.className = 'verdict neutral';
+    verdict.textContent = 'No finite breakeven: the present value of resale proceeds equals or exceeds the purchase price at this lifespan. This happens when appreciation (' + (appr*100).toFixed(1) + '%) outpaces the return rate (' + (rate*100).toFixed(1) + '%) with high retained value — the item effectively pays for itself regardless of price.';
+    return;
+  }
   const breakeven = annuityPV / (1 - resaleFactor);
   const delta = actual - breakeven;
   const multiple = breakeven / annualCheap;
@@ -218,6 +236,7 @@ function update() {
     verdict.textContent = 'The quality item at ' + fmt(actual) + ' exceeds the breakeven of ' + fmt(breakeven) + ' by ' + fmt(delta) + '. Even with costs rising at ' + (infl * 100).toFixed(1) + '%/yr, you\'re better off buying cheap (' + fmt(cheap) + ' ' + fl + ') and investing the difference at ' + (rate * 100).toFixed(1) + '%.';
   }
 
+  // --- Chart 1: cumulative cost vs breakeven vs actual ---
   const labels = [], cumCheap = [], beData = [], actualData = [];
   let nomCost = 0;
   for (let y = 0; y <= life; y++) {
@@ -234,6 +253,22 @@ function update() {
     { label: 'Actual quality price',   data: actualData, borderColor: '#D4537E', borderDash: [3,3], backgroundColor: 'transparent', tension: 0, borderWidth: 2, pointRadius: 0, fill: false },
   ];
 
+  const chartOpts = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: {
+        ticks: { callback: v => '$' + (v >= 1000 ? (v/1000).toFixed(0) + 'K' : v), font: { size: 11 }, color: '#9094a8' },
+        grid: { color: 'rgba(255,255,255,0.06)' }
+      },
+      x: {
+        ticks: { font: { size: 11 }, color: '#9094a8', maxRotation: 0, autoSkip: true },
+        grid: { display: false }
+      }
+    }
+  };
+
   if (chart) {
     chart.data.labels = labels;
     chart.data.datasets = ds;
@@ -242,21 +277,48 @@ function update() {
     chart = new Chart(document.getElementById('chart'), {
       type: 'line',
       data: { labels, datasets: ds },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: {
-          y: {
-            ticks: { callback: v => '$' + (v >= 1000 ? (v/1000).toFixed(0) + 'K' : v), font: { size: 11 }, color: '#9094a8' },
-            grid: { color: 'rgba(255,255,255,0.06)' }
-          },
-          x: {
-            ticks: { font: { size: 11 }, color: '#9094a8', maxRotation: 0, autoSkip: true },
-            grid: { display: false }
-          }
-        }
-      }
+      options: chartOpts
+    });
+  }
+
+  // --- Chart 2: portfolio value over time ---
+  // Both scenarios start with the same cash pool = actual price paid.
+  // Cheap scenario: invest `actual` upfront; each year pay cheap cost (inflation-adjusted) from portfolio.
+  // Quality scenario: spend `actual` upfront (portfolio = 0); receive resale at end of year n.
+  const cheapPortfolio = [], qualityPortfolio = [];
+  let cheapPV = actual; // start: invested the money you would have spent on quality item
+  let qualPV  = 0;      // start: spent it on the quality item
+
+  for (let y = 0; y <= life; y++) {
+    // Quality item value: resale haircut applied from Yr 0, then appreciates.
+    // Reflects that the liquidity loss is a committed cost at purchase.
+    const itemValue = actual * retain * Math.pow(1 + appr, y);
+
+    cheapPortfolio.push(Math.round(cheapPV));
+    qualityPortfolio.push(Math.round(itemValue));
+
+    if (y < life) {
+      // Cheap: withdraw this year's cost, then grow remainder
+      const yearlyCost = annualCheap * Math.pow(1 + infl, y);
+      cheapPV = (cheapPV - yearlyCost) * (1 + rate);
+      // Quality: portfolio stays 0 (money is tied up in item); item value handled above
+    }
+  }
+
+  const ds2 = [
+    { label: 'Buy cheap — invest difference', data: cheapPortfolio, borderColor: '#639922', backgroundColor: '#63992218', tension: 0.3, borderWidth: 2, pointRadius: 2, fill: true },
+    { label: 'Buy quality — portfolio incl. resale', data: qualityPortfolio, borderColor: '#D4537E', backgroundColor: '#D4537E18', tension: 0.3, borderWidth: 2, pointRadius: 2, fill: true },
+  ];
+
+  if (chart2) {
+    chart2.data.labels = labels;
+    chart2.data.datasets = ds2;
+    chart2.update();
+  } else {
+    chart2 = new Chart(document.getElementById('chart2'), {
+      type: 'line',
+      data: { labels, datasets: ds2 },
+      options: JSON.parse(JSON.stringify(chartOpts)) // clone to avoid shared ref
     });
   }
 }
