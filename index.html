@@ -22,37 +22,7 @@
   *, *::before, *::after { box-sizing: border-box; }
   body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; margin: 0; padding: 1rem; }
   h1 { font-size: 16px; font-weight: 600; margin: 0 0 1rem; color: var(--text); }
-  .section-label {
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--text3);
-    margin: 0 0 8px;
-  }
-  .fields { display: flex; flex-wrap: wrap; gap: 14px; padding: 1rem; background: var(--bg2); border-radius: var(--radius-lg); margin-bottom: 0.75rem; }
-  .resale-fields {
-    display: flex; flex-wrap: wrap; gap: 14px; padding: 1rem;
-    background: var(--bg2);
-    border-radius: var(--radius-lg);
-    margin-bottom: 1.25rem;
-    border: 1px solid #2a3a2a;
-    position: relative;
-  }
-  .resale-badge {
-    position: absolute;
-    top: -1px; right: 12px;
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    background: #1e3a1e;
-    color: #4caf7d;
-    border: 1px solid #2a5a2a;
-    border-top: none;
-    padding: 2px 8px 3px;
-    border-radius: 0 0 6px 6px;
-  }
+  .fields { display: flex; flex-wrap: wrap; gap: 14px; padding: 1rem; background: var(--bg2); border-radius: var(--radius-lg); margin-bottom: 1.25rem; }
   .field { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 130px; }
   .field label { font-size: 12px; color: var(--text2); }
   .input-wrap { position: relative; display: flex; align-items: center; }
@@ -62,12 +32,10 @@
   .input-wrap input { width: 100%; background: var(--bg); border: 1px solid var(--border3); border-radius: var(--radius); color: var(--text); font-size: 15px; font-weight: 500; padding: 7px 10px; outline: none; -moz-appearance: textfield; }
   .input-wrap input::-webkit-inner-spin-button, .input-wrap input::-webkit-outer-spin-button { -webkit-appearance: none; }
   .input-wrap input:focus { border-color: #378ADD; }
-  .resale-fields .input-wrap input:focus { border-color: #4caf7d; }
   .has-pre input { padding-left: 22px; }
   .has-suf input { padding-right: 32px; }
   .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(0,1fr)); gap: 10px; margin-bottom: 1.25rem; }
   .metric { background: var(--bg2); border-radius: var(--radius); padding: 0.75rem 1rem; }
-  .metric.resale-metric { border: 1px solid #2a3a2a; }
   .mlabel { font-size: 11px; color: var(--text2); margin-bottom: 2px; }
   .mvalue { font-size: 20px; font-weight: 500; }
   .msub { font-size: 11px; color: var(--text3); margin-top: 2px; }
@@ -87,7 +55,6 @@
 
 <h1>Buy It For Life — Breakeven Calculator</h1>
 
-<div class="section-label">Core inputs</div>
 <div class="fields">
   <div class="field">
     <label>Cost of cheap item (today's $)</label>
@@ -131,22 +98,17 @@
       <span class="suf">%</span>
     </div>
   </div>
-</div>
-
-<div class="section-label">Resale inputs</div>
-<div class="resale-fields">
-  <div class="resale-badge">optional</div>
   <div class="field">
-    <label>Annual appreciation of quality item</label>
+    <label>Annual appreciation of quality item (% p.a.)</label>
     <div class="input-wrap has-suf">
-      <input type="number" id="appr" value="0" step="0.1">
+      <input type="number" id="appr" value="0" min="0" step="0.1">
       <span class="suf">%</span>
     </div>
   </div>
   <div class="field">
-    <label>Retained value at resale</label>
+    <label>Retained value at resale (%)</label>
     <div class="input-wrap has-suf">
-      <input type="number" id="retain" value="60" min="0" max="100" step="1">
+      <input type="number" id="retain" value="0" min="0" max="100" step="1">
       <span class="suf">%</span>
     </div>
   </div>
@@ -173,16 +135,6 @@
     <div class="mvalue" id="m-multiple">—</div>
     <div class="msub">vs annual cheap cost</div>
   </div>
-  <div class="metric resale-metric">
-    <div class="mlabel">Resale value (end of life)</div>
-    <div class="mvalue" id="m-resale" style="color:#4caf7d;">—</div>
-    <div class="msub">future nominal · PV shown in breakeven</div>
-  </div>
-  <div class="metric resale-metric">
-    <div class="mlabel">Resale PV boost</div>
-    <div class="mvalue" id="m-resale-pv" style="color:#4caf7d;">—</div>
-    <div class="msub">added to breakeven ceiling</div>
-  </div>
 </div>
 
 <div class="verdict neutral" id="verdict">Fill in all fields to see results.</div>
@@ -191,7 +143,6 @@
   <span><span class="swatch" style="background:#378ADD"></span>Cumulative cheap cost (nominal)</span>
   <span><span class="swatch" style="background:#639922"></span>Breakeven price</span>
   <span><span class="swatch" style="background:#D4537E"></span>Actual quality price</span>
-  <span><span class="swatch" style="background:#4caf7d"></span>Effective cost after resale</span>
 </div>
 
 <div class="chart-wrap">
@@ -199,7 +150,7 @@
 </div>
 
 <div class="explainer">
-  <strong>How this works:</strong> The breakeven price is the present value of all future cheap purchases, where each year's cost grows with inflation and is discounted at your return rate (growing annuity PV). If you enter resale inputs, the PV of the expected resale proceeds is added to the breakeven ceiling — because you'll recover that money at end of life. The resale value is computed as <em>actual price × (1 + appreciation)^lifespan × retained %</em>, then discounted back to today. The effective cost line shows the quality item's real outlay net of resale.
+  <strong>How this works:</strong> The breakeven price is solved so that the quality item's net cost (purchase price minus the present value of its resale proceeds) equals the present value of all future cheap purchases (a growing annuity discounted at your return rate). Resale proceeds are the breakeven price appreciating at the item's annual rate over its lifespan, multiplied by the retained value fraction, discounted back to today. Because both sides scale with price, the equation resolves to a closed-form: <em>P = annuityPV / (1 − retain × ((1+appr)/(1+rate))^n)</em>.
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
@@ -227,7 +178,7 @@ function update() {
   const rate   = parseFloat(document.getElementById('rate').value)   / 100 || 0;
   const infl   = parseFloat(document.getElementById('infl').value)   / 100 || 0;
   const appr   = parseFloat(document.getElementById('appr').value)   / 100 || 0;
-  const retain = parseFloat(document.getElementById('retain').value) / 100;
+  const retain = parseFloat(document.getElementById('retain').value) / 100 || 0;
 
   const verdict = document.getElementById('verdict');
 
@@ -243,55 +194,37 @@ function update() {
   }
 
   const annualCheap = cheap / freq;
-
-  // Base breakeven: PV of future cheap purchases
-  const basePV = growingAnnuityPV(annualCheap, rate, infl, life);
-
-  // Resale: future nominal value of the quality item at end of life
-  const futureResale = actual * Math.pow(1 + appr, life) * retain;
-  // PV of resale proceeds (discounted at return rate)
-  const resalePV = futureResale / Math.pow(1 + rate, life);
-
-  // Adjusted breakeven = base PV + resale PV (you recover this at end)
-  const breakeven = basePV + resalePV;
-
+  const annuityPV = growingAnnuityPV(annualCheap, rate, infl, life);
+  // Resale proceeds (in today's $) = P × (1+appr)^n × retain / (1+rate)^n
+  // At breakeven: P - P × retain × ((1+appr)/(1+rate))^n = annuityPV
+  // => P = annuityPV / (1 - retain × ((1+appr)/(1+rate))^n)
+  const resaleFactor = retain * Math.pow((1 + appr) / (1 + rate), life);
+  const breakeven = annuityPV / (1 - resaleFactor);
   const delta = actual - breakeven;
   const multiple = breakeven / annualCheap;
-  const effectiveCost = actual - resalePV; // nominal outlay net of discounted resale
 
   document.getElementById('m-breakeven').textContent = fmt(breakeven);
   document.getElementById('m-actual').textContent = fmt(actual);
   document.getElementById('m-delta').textContent = (delta >= 0 ? '+' : '\u2212') + '$' + Math.round(Math.abs(delta)).toLocaleString();
   document.getElementById('m-delta').style.color = delta <= 0 ? '#4caf7d' : '#e05c5c';
   document.getElementById('m-multiple').textContent = multiple.toFixed(1) + '\u00d7';
-  document.getElementById('m-resale').textContent = fmt(futureResale);
-  document.getElementById('m-resale-pv').textContent = fmt(resalePV);
 
   const fl = freqLabel(freq);
-  const resaleNote = resalePV > 0
-    ? ' (including a ' + fmt(resalePV) + ' PV boost from resale proceeds of ' + fmt(futureResale) + ' in ' + life + ' years)'
-    : '';
-
   if (delta <= 0) {
     verdict.className = 'verdict good';
-    verdict.textContent = 'The quality item at ' + fmt(actual) + ' is below the breakeven of ' + fmt(breakeven) + resaleNote + ' — it\'s worth buying. You\'d save ' + fmt(-delta) + ' in present value terms vs buying cheap (' + fmt(cheap) + ' ' + fl + ', rising at ' + (infl * 100).toFixed(1) + '%/yr) and investing the difference.';
+    verdict.textContent = 'The quality item at ' + fmt(actual) + ' is below the breakeven of ' + fmt(breakeven) + ' — it\'s worth buying. You\'d save ' + fmt(-delta) + ' in present value terms vs buying cheap (' + fmt(cheap) + ' ' + fl + ', rising at ' + (infl * 100).toFixed(1) + '%/yr) and investing the difference.';
   } else {
     verdict.className = 'verdict bad';
-    verdict.textContent = 'The quality item at ' + fmt(actual) + ' exceeds the breakeven of ' + fmt(breakeven) + resaleNote + ' by ' + fmt(delta) + '. Even with costs rising at ' + (infl * 100).toFixed(1) + '%/yr, you\'re better off buying cheap (' + fmt(cheap) + ' ' + fl + ') and investing the difference at ' + (rate * 100).toFixed(1) + '%.';
+    verdict.textContent = 'The quality item at ' + fmt(actual) + ' exceeds the breakeven of ' + fmt(breakeven) + ' by ' + fmt(delta) + '. Even with costs rising at ' + (infl * 100).toFixed(1) + '%/yr, you\'re better off buying cheap (' + fmt(cheap) + ' ' + fl + ') and investing the difference at ' + (rate * 100).toFixed(1) + '%.';
   }
 
-  const labels = [], cumCheap = [], beData = [], actualData = [], effectiveData = [];
+  const labels = [], cumCheap = [], beData = [], actualData = [];
   let nomCost = 0;
   for (let y = 0; y <= life; y++) {
     labels.push('Yr ' + y);
     cumCheap.push(Math.round(nomCost));
     beData.push(Math.round(breakeven));
     actualData.push(Math.round(actual));
-    // Effective cost declines linearly toward net cost at end of life
-    // (conceptual: amortising the resale benefit over time)
-    const frac = y / life;
-    const resaleAccrued = resalePV * frac; // linearly accrue the resale PV benefit
-    effectiveData.push(Math.round(actual - resaleAccrued));
     nomCost += annualCheap * Math.pow(1 + infl, y);
   }
 
@@ -299,7 +232,6 @@ function update() {
     { label: 'Cumulative cheap cost', data: cumCheap, borderColor: '#378ADD', backgroundColor: '#378ADD18', tension: 0.3, borderWidth: 2, pointRadius: 2, fill: false },
     { label: 'Breakeven price',        data: beData,   borderColor: '#639922', borderDash: [6,3], backgroundColor: 'transparent', tension: 0, borderWidth: 2, pointRadius: 0, fill: false },
     { label: 'Actual quality price',   data: actualData, borderColor: '#D4537E', borderDash: [3,3], backgroundColor: 'transparent', tension: 0, borderWidth: 2, pointRadius: 0, fill: false },
-    { label: 'Effective cost (net of resale)', data: effectiveData, borderColor: '#4caf7d', borderDash: [4,2], backgroundColor: '#4caf7d10', tension: 0.2, borderWidth: 2, pointRadius: 0, fill: false },
   ];
 
   if (chart) {
@@ -335,5 +267,4 @@ function update() {
 update();
 </script>
 </body>
-  <footer>Made with help from Claude (Sonnet 4.6). <a href="https://realgirlmaths.github.io/examples/">See examples here.</a> </footer>
 </html>
