@@ -195,64 +195,58 @@ function update() {
 
   const verdict = document.getElementById('verdict');
 
+  // Hard stops — can't render anything meaningful
   if (!cheap || !life || !rate) {
     verdict.className = 'verdict neutral';
     verdict.textContent = 'Fill in all fields to see results.';
+    if (chart)  { chart.destroy();  chart  = null; }
+    if (chart2) { chart2.destroy(); chart2 = null; }
     return;
   }
   if (rate <= infl) {
     verdict.className = 'verdict neutral';
     verdict.textContent = 'Return rate must be higher than inflation rate for this model to work.';
+    if (chart)  { chart.destroy();  chart  = null; }
+    if (chart2) { chart2.destroy(); chart2 = null; }
     return;
   }
 
   const annualCheap = cheap / freq;
   const annuityPV = growingAnnuityPV(annualCheap, rate, infl, life);
-  // Resale proceeds (in today's $) = P × (1+appr)^n × retain / (1+rate)^n
-  // At breakeven: P - P × retain × ((1+appr)/(1+rate))^n = annuityPV
-  // => P = annuityPV / (1 - retain × ((1+appr)/(1+rate))^n)
   const resaleFactor = retain * Math.pow((1 + appr) / (1 + rate), life);
-  if (resaleFactor >= 1) {
+  const noBreakeven = resaleFactor >= 1;
+
+  // --- Metrics & verdict ---
+  if (noBreakeven) {
     verdict.className = 'verdict neutral';
     verdict.textContent = 'No finite breakeven: the present value of resale proceeds equals or exceeds the purchase price at this lifespan. This happens when appreciation (' + (appr*100).toFixed(1) + '%) outpaces the return rate (' + (rate*100).toFixed(1) + '%) with high retained value — the item effectively pays for itself regardless of price.';
-    return;
-  }
-  const breakeven = annuityPV / (1 - resaleFactor);
-  const delta = actual - breakeven;
-  const multiple = breakeven / annualCheap;
-
-  document.getElementById('m-breakeven').textContent = fmt(breakeven);
-  document.getElementById('m-actual').textContent = fmt(actual);
-  document.getElementById('m-delta').textContent = (delta >= 0 ? '+' : '\u2212') + '$' + Math.round(Math.abs(delta)).toLocaleString();
-  document.getElementById('m-delta').style.color = delta <= 0 ? '#4caf7d' : '#e05c5c';
-  document.getElementById('m-multiple').textContent = multiple.toFixed(1) + '\u00d7';
-
-  const fl = freqLabel(freq);
-  if (delta <= 0) {
-    verdict.className = 'verdict good';
-    verdict.textContent = 'The quality item at ' + fmt(actual) + ' is below the breakeven of ' + fmt(breakeven) + ' — it\'s worth buying. You\'d save ' + fmt(-delta) + ' in present value terms vs buying cheap (' + fmt(cheap) + ' ' + fl + ', rising at ' + (infl * 100).toFixed(1) + '%/yr) and investing the difference.';
+    document.getElementById('m-breakeven').textContent = 'N/A';
+    document.getElementById('m-actual').textContent = fmt(actual);
+    document.getElementById('m-delta').textContent = '—';
+    document.getElementById('m-delta').style.color = '';
+    document.getElementById('m-multiple').textContent = '—';
   } else {
-    verdict.className = 'verdict bad';
-    verdict.textContent = 'The quality item at ' + fmt(actual) + ' exceeds the breakeven of ' + fmt(breakeven) + ' by ' + fmt(delta) + '. Even with costs rising at ' + (infl * 100).toFixed(1) + '%/yr, you\'re better off buying cheap (' + fmt(cheap) + ' ' + fl + ') and investing the difference at ' + (rate * 100).toFixed(1) + '%.';
+    const breakeven = annuityPV / (1 - resaleFactor);
+    const delta = actual - breakeven;
+    const multiple = breakeven / annualCheap;
+
+    document.getElementById('m-breakeven').textContent = fmt(breakeven);
+    document.getElementById('m-actual').textContent = fmt(actual);
+    document.getElementById('m-delta').textContent = (delta >= 0 ? '+' : '\u2212') + '$' + Math.round(Math.abs(delta)).toLocaleString();
+    document.getElementById('m-delta').style.color = delta <= 0 ? '#4caf7d' : '#e05c5c';
+    document.getElementById('m-multiple').textContent = multiple.toFixed(1) + '\u00d7';
+
+    const fl = freqLabel(freq);
+    if (delta <= 0) {
+      verdict.className = 'verdict good';
+      verdict.textContent = 'The quality item at ' + fmt(actual) + ' is below the breakeven of ' + fmt(breakeven) + ' — it\'s worth buying. You\'d save ' + fmt(-delta) + ' in present value terms vs buying cheap (' + fmt(cheap) + ' ' + fl + ', rising at ' + (infl * 100).toFixed(1) + '%/yr) and investing the difference.';
+    } else {
+      verdict.className = 'verdict bad';
+      verdict.textContent = 'The quality item at ' + fmt(actual) + ' exceeds the breakeven of ' + fmt(breakeven) + ' by ' + fmt(delta) + '. Even with costs rising at ' + (infl * 100).toFixed(1) + '%/yr, you\'re better off buying cheap (' + fmt(cheap) + ' ' + fl + ') and investing the difference at ' + (rate * 100).toFixed(1) + '%.';
+    }
   }
 
-  // --- Chart 1: cumulative cost vs breakeven vs actual ---
-  const labels = [], cumCheap = [], beData = [], actualData = [];
-  let nomCost = 0;
-  for (let y = 0; y <= life; y++) {
-    labels.push('Yr ' + y);
-    cumCheap.push(Math.round(nomCost));
-    beData.push(Math.round(breakeven));
-    actualData.push(Math.round(actual));
-    nomCost += annualCheap * Math.pow(1 + infl, y);
-  }
-
-  const ds = [
-    { label: 'Cumulative cheap cost', data: cumCheap, borderColor: '#378ADD', backgroundColor: '#378ADD18', tension: 0.3, borderWidth: 2, pointRadius: 2, fill: false },
-    { label: 'Breakeven price',        data: beData,   borderColor: '#639922', borderDash: [6,3], backgroundColor: 'transparent', tension: 0, borderWidth: 2, pointRadius: 0, fill: false },
-    { label: 'Actual quality price',   data: actualData, borderColor: '#D4537E', borderDash: [3,3], backgroundColor: 'transparent', tension: 0, borderWidth: 2, pointRadius: 0, fill: false },
-  ];
-
+  // --- Chart options (shared) ---
   const chartOpts = {
     responsive: true,
     maintainAspectRatio: false,
@@ -269,6 +263,24 @@ function update() {
     }
   };
 
+  // --- Chart 1: cumulative cost vs breakeven vs actual ---
+  const labels = [], cumCheap = [], beData = [], actualData = [];
+  let nomCost = 0;
+  const breakeven = noBreakeven ? null : annuityPV / (1 - resaleFactor);
+  for (let y = 0; y <= life; y++) {
+    labels.push('Yr ' + y);
+    cumCheap.push(Math.round(nomCost));
+    beData.push(breakeven !== null ? Math.round(breakeven) : null);
+    actualData.push(Math.round(actual));
+    nomCost += annualCheap * Math.pow(1 + infl, y);
+  }
+
+  const ds = [
+    { label: 'Cumulative cheap cost', data: cumCheap,   borderColor: '#378ADD', backgroundColor: '#378ADD18', tension: 0.3, borderWidth: 2, pointRadius: 2, fill: false },
+    { label: 'Breakeven price',        data: beData,     borderColor: '#639922', borderDash: [6,3], backgroundColor: 'transparent', tension: 0, borderWidth: 2, pointRadius: 0, fill: false, spanGaps: false },
+    { label: 'Actual quality price',   data: actualData, borderColor: '#D4537E', borderDash: [3,3], backgroundColor: 'transparent', tension: 0, borderWidth: 2, pointRadius: 0, fill: false },
+  ];
+
   if (chart) {
     chart.data.labels = labels;
     chart.data.datasets = ds;
@@ -283,30 +295,23 @@ function update() {
 
   // --- Chart 2: portfolio value over time ---
   // Both scenarios start with the same cash pool = actual price paid.
-  // Cheap scenario: invest `actual` upfront; each year pay cheap cost (inflation-adjusted) from portfolio.
-  // Quality scenario: spend `actual` upfront (portfolio = 0); receive resale at end of year n.
+  // Cheap: invest actual upfront, withdraw each year's inflation-adjusted cheap cost.
+  // Quality: spend actual upfront; track item's realisable value (retain applied at Yr 0, then appreciates).
   const cheapPortfolio = [], qualityPortfolio = [];
-  let cheapPV = actual; // start: invested the money you would have spent on quality item
-  let qualPV  = 0;      // start: spent it on the quality item
+  let cheapPV = actual;
 
   for (let y = 0; y <= life; y++) {
-    // Quality item value: resale haircut applied from Yr 0, then appreciates.
-    // Reflects that the liquidity loss is a committed cost at purchase.
     const itemValue = actual * retain * Math.pow(1 + appr, y);
-
     cheapPortfolio.push(Math.round(cheapPV));
     qualityPortfolio.push(Math.round(itemValue));
-
     if (y < life) {
-      // Cheap: withdraw this year's cost, then grow remainder
       const yearlyCost = annualCheap * Math.pow(1 + infl, y);
       cheapPV = (cheapPV - yearlyCost) * (1 + rate);
-      // Quality: portfolio stays 0 (money is tied up in item); item value handled above
     }
   }
 
   const ds2 = [
-    { label: 'Buy cheap — invest difference', data: cheapPortfolio, borderColor: '#639922', backgroundColor: '#63992218', tension: 0.3, borderWidth: 2, pointRadius: 2, fill: true },
+    { label: 'Buy cheap — invest difference',      data: cheapPortfolio,   borderColor: '#639922', backgroundColor: '#63992218', tension: 0.3, borderWidth: 2, pointRadius: 2, fill: true },
     { label: 'Buy quality — portfolio incl. resale', data: qualityPortfolio, borderColor: '#D4537E', backgroundColor: '#D4537E18', tension: 0.3, borderWidth: 2, pointRadius: 2, fill: true },
   ];
 
@@ -318,7 +323,7 @@ function update() {
     chart2 = new Chart(document.getElementById('chart2'), {
       type: 'line',
       data: { labels, datasets: ds2 },
-      options: JSON.parse(JSON.stringify(chartOpts)) // clone to avoid shared ref
+      options: JSON.parse(JSON.stringify(chartOpts))
     });
   }
 }
